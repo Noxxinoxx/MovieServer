@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movies</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
+</head>
+<body>
+    <div id="movieContainer">
+
+    </div>
+    <script>
+        var socket = io()
+
+        socket.on("videos", (data) => {
+            console.log("hej")
+            var div = document.getElementById("movieContainter")
+            for(i = 0; i < data.length; i++) {
+                console.log(data)
+                var pTag = document.createElement("p")
+                var textNode = document.createTextNode(data[i])
+                var t = pTag.append(textNode)
+                div.append(t)
+                
+            }
+            
+        })
+
+    </script>
+</body>
+</html>
