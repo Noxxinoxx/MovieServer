@@ -11,12 +11,13 @@
     <input type="text" id="password">
     <input type="button" id="emit">
     <script>
-        var socket = io()
+        var socket = io("/")
         document.getElementById("emit").onclick = () => {
             socket.emit("UserLogin", {password: document.getElementById("password").value, username: document.getElementById("username").value})
-            console.log(document.getElementById("password").value)
+            
         }
         socket.on("verified", (data) => {
+            console.log(data.ID)
             if(data.verifed == true) {
                 document.location.replace("http://localhost:3001/Movies?id=" + data.ID)
             }else if(data.verifed == false) {
