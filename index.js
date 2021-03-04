@@ -4,34 +4,49 @@ var app = express();
 var server = http.createServer(app)
 var io = require('socket.io')(server);
 var fs = require("fs")
-
-
-
-app.get("/", (req, res) => {
-    res.sendFile("index.html", {root: __dirname})
-    
-})
-
-
+var {search, getAnime, getQualities} = require("anigrab").sites.siteLoader("animeout")
+var qualities;
+var JSONOBJECT = []
 var users = []
 let randomID;
 let movieClicked;
-
+async function AnimeSearch(searchWord) {
+    const searchResult = await search(searchWord);
+    const {url} = searchResult[0]
+    const anime = await getAnime(url)
+    console.log(anime)
+    const episodeURL = anime.episodes[1].url;
+    qualities = await getQualities(episodeURL);
+    var stringData = JSON.stringify(anime)     
+    fs.writeFileSync("./public/Movie/Collection/" + searchWord + ".json", stringData)
+}
+app.get("/", (req, res) => {
+    res.sendFile("index.html", {root: __dirname})
+})
 io.of("/Wonder").on("connection", (socket) => {
     socket.emit("renderMovieFromHandleBars", {Title: movieClicked, ID: randomID})
-    console.log("jjj")
+    console.log("Users connected with aoutcode: " + randomID)
+    console.log("Movie that are played is: " + movieClicked)
     app.use('/static/' + randomID, express.static('public'))
-})
 
+})
 io.of("/Movies").on("connection", (socket) => {
     var MovieFolder = fs.readdirSync("./public/Movie/")
     socket.emit("videos", MovieFolder)
-    socket.on("disconnect", (user) => {
-       
-        console.log("Video viewer disconneced")
-    })
-
     
+    socket.on("animesearch", (nameSearch) => {
+        console.log("got Info" + nameSearch.MoviveTitle)
+        var arrayOfDir = fs.readdirSync("./public/Movie/Collection/")
+        var dataFromDir = fs.readFileSync("./public/Movie/Collstion/" + nameSearch + ".json")
+        console.log(arrayOfDir)
+        if(arrayOfDir.includes(nameSearch.MoviveTitle + ".json")) {
+            console.log("this anime is already in the collection!")
+            socket.emit("OnSearchResult", {data: dataFromDir})
+        }else {
+            AnimeSearch(nameSearch.MoviveTitle);
+            socket.emit("OnSearchResult", {data: dataFromDir})
+        }
+    })
     socket.on("videoClicked", (data) => {
         socket.emit("movie", {Title: data.MovieClicked, ID: randomID})
         movieClicked = data.MovieClicked;
@@ -39,18 +54,16 @@ io.of("/Movies").on("connection", (socket) => {
             console.log(req.query.id)
             console.log(randomID)
             if(req.query.id == randomID){
-                res.sendFile("test.html", {root: __dirname})  
-                  
-                
+                res.sendFile("test.html", {root: __dirname})
             }else {
                 console.log("hehe")
                 res.status(404)
             }
-
         })
     })
-    
-    
+    socket.on("disconnect", (user) => {
+        console.log("Video viewer disconneced")
+    })
 })
 io.of("/").on("connection", (socket) => {
     randomID = Math.random(10000)
@@ -59,27 +72,19 @@ io.of("/").on("connection", (socket) => {
             socket.emit("verified", {verifed : true, ID: randomID})
             users.push(data.username)
             app.get("/Movies/", (req, res) => {
-                
                 if(req.query.id == randomID){
-                    
                     res.sendFile("Movie.html", {root: __dirname})
-                    
                 }else {
                     res.status(404)
                 }
             })
-            
         }else {
             socket.emit("verified", {verifed: false})
         }
     })
-    
     socket.on("disconnect",(user) => {
         console.log("user disconneected")
         users = []
-        
-        
     })
 })
-
 server.listen(3001)

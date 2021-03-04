@@ -7,22 +7,44 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
 </head>
 <body>
+    <input type="text" id="searchBar">
+    <input type="button" id="emit">
     <div id="movieContainter">
 
     </div>
+    <div id="afterSearch">
+
+    </div>
+    
     <script>
         var socket = io("/Movies")
         var videos = []
+        document.getElementById("emit").onclick = () =>{
+            var bar = document.getElementById("searchBar").value
+            console.log(bar)
+            socket.emit("animesearch", {MoviveTitle: bar})
+        }
+
+
+        socket.on("OnSearchResult", (data) => {
+            var DownloadedMovies = document.getElementById("movieContainter").hidden = true;
+            
+        })
         socket.on("videos", (data) => {
             console.log(data)
             var div = document.getElementById("movieContainter")
             for(i = 0; i < data.length; i++) {
-                videos.push(data[i])
-                var pTag = document.createElement("p")
-                pTag.innerHTML = data[i]
-                pTag.setAttribute("name", data[i])
-                document.body.appendChild(pTag)
-                CallEvent(pTag)
+                if(data[i] == "Collection") {
+                    console.log("")
+                }else {
+                    videos.push(data[i])
+                    var pTag = document.createElement("p")
+                    pTag.innerHTML = data[i]
+                    pTag.setAttribute("name", data[i])
+                    document.body.appendChild(pTag)
+                    CallEvent(pTag)
+                }
+                
                 
                 
             }
