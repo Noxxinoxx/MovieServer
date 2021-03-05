@@ -28,7 +28,14 @@
 
         socket.on("OnSearchResult", (data) => {
             var DownloadedMovies = document.getElementById("movieContainter").hidden = true;
-            
+            for(i = 0; i < data.dataTitle.length; i++) {
+                videos.push(data.dataTitle[i].title)
+                var pTag = document.createElement("p")
+                pTag.innerHTML = data.dataTitle[i].title
+                pTag.setAttribute("name", data.dataTitle[i].title)
+                document.body.appendChild(pTag)
+                CallEvent(pTag)
+            }
         })
         socket.on("videos", (data) => {
             console.log(data)

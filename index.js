@@ -14,10 +14,10 @@ async function AnimeSearch(searchWord) {
     const searchResult = await search(searchWord);
     const {url} = searchResult[0]
     const anime = await getAnime(url)
-    console.log(anime)
     const episodeURL = anime.episodes[1].url;
     qualities = await getQualities(episodeURL);
-    var stringData = JSON.stringify(anime)     
+    var stringData = JSON.stringify(anime)  
+    console.log(stringData)   
     fs.writeFileSync("./public/Movie/Collection/" + searchWord + ".json", stringData)
 }
 app.get("/", (req, res) => {
@@ -34,17 +34,22 @@ io.of("/Movies").on("connection", (socket) => {
     var MovieFolder = fs.readdirSync("./public/Movie/")
     socket.emit("videos", MovieFolder)
     
-    socket.on("animesearch", (nameSearch) => {
+    socket.on("animesearch", async (nameSearch) => {
         console.log("got Info" + nameSearch.MoviveTitle)
         var arrayOfDir = fs.readdirSync("./public/Movie/Collection/")
-        var dataFromDir = fs.readFileSync("./public/Movie/Collstion/" + nameSearch + ".json")
-        console.log(arrayOfDir)
+        console.log(dataTitle)
         if(arrayOfDir.includes(nameSearch.MoviveTitle + ".json")) {
+            var dataFromDir = fs.readFileSync("./public/Movie/Collection/" + nameSearch.MoviveTitle + ".json")
+            var parsedData = JSON.parse(dataFromDir)
+            var dataTitle = parsedData.episodes;
             console.log("this anime is already in the collection!")
-            socket.emit("OnSearchResult", {data: dataFromDir})
+            socket.emit("OnSearchResult", {dataTitle: dataTitle})
         }else {
-            AnimeSearch(nameSearch.MoviveTitle);
-            socket.emit("OnSearchResult", {data: dataFromDir})
+            await AnimeSearch(nameSearch.MoviveTitle);
+            var dataFromDir = fs.readFileSync("./public/Movie/Collection/" + nameSearch.MoviveTitle + ".json")
+            var parsedData = JSON.parse(dataFromDir)
+            var dataTitle = parsedData.episodes;
+            socket.emit("OnSearchResult", {dataTitle: dataTitle})
         }
     })
     socket.on("videoClicked", (data) => {
