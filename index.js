@@ -4,7 +4,15 @@ var app = express();
 var server = http.createServer(app)
 var io = require('socket.io')(server);
 var fs = require("fs")
-var {search, getAnime, getQualities} = require("anigrab").sites.siteLoader("animeout")
+//no anime 
+//gogoanime
+//twist
+//hentihaven
+//animeflix
+//4anime
+//ryuanime
+//animefreak
+var {search, getAnime, getQualities} = require("anigrab").sites.siteLoader("4anime")
 var qualities;
 var JSONOBJECT = []
 var users = []
@@ -12,6 +20,7 @@ let randomID;
 let movieClicked;
 async function AnimeSearch(searchWord) {
     const searchResult = await search(searchWord);
+    console.log(searchResult + "he")
     const {url} = searchResult[0]
     const anime = await getAnime(url)
     const episodeURL = anime.episodes[1].url;
@@ -35,9 +44,9 @@ io.of("/Movies").on("connection", (socket) => {
     socket.emit("videos", MovieFolder)
     
     socket.on("animesearch", async (nameSearch) => {
-        console.log("got Info" + nameSearch.MoviveTitle)
+        console.log("got Info " + nameSearch.MoviveTitle)
         var arrayOfDir = fs.readdirSync("./public/Movie/Collection/")
-        console.log(dataTitle)
+        
         if(arrayOfDir.includes(nameSearch.MoviveTitle + ".json")) {
             var dataFromDir = fs.readFileSync("./public/Movie/Collection/" + nameSearch.MoviveTitle + ".json")
             var parsedData = JSON.parse(dataFromDir)
