@@ -14,20 +14,26 @@ var fs = require("fs")
 //animefreak
 var {search, getAnime, getQualities} = require("anigrab").sites.siteLoader("4anime")
 var qualities;
-var JSONOBJECT = []
 var users = []
 let randomID;
 let movieClicked;
+var dataTitle;
 async function AnimeSearch(searchWord) {
-    const searchResult = await search(searchWord);
-    console.log(searchResult + "he")
-    const {url} = searchResult[0]
-    const anime = await getAnime(url)
-    const episodeURL = anime.episodes[1].url;
-    qualities = await getQualities(episodeURL);
-    var stringData = JSON.stringify(anime)  
-    console.log(stringData)   
-    fs.writeFileSync("./public/Movie/Collection/" + searchWord + ".json", stringData)
+    try{
+        const searchResult = await search(searchWord);
+        console.log(searchResult + " " + searchWord)
+        const {url} = searchResult[0]
+        console.log(url)
+        const anime = await getAnime(url)
+        const episodeURL = anime.episodes[0].url;
+        console.log(episodeURL)
+        var stringData = JSON.stringify(anime)  
+        console.log(stringData)   
+        fs.writeFileSync("./public/Movie/Collection/" + searchWord + ".json", stringData)
+    } catch(error) {
+        console.log(error)
+    }
+    
 }
 app.get("/", (req, res) => {
     res.sendFile("index.html", {root: __dirname})
@@ -50,14 +56,14 @@ io.of("/Movies").on("connection", (socket) => {
         if(arrayOfDir.includes(nameSearch.MoviveTitle + ".json")) {
             var dataFromDir = fs.readFileSync("./public/Movie/Collection/" + nameSearch.MoviveTitle + ".json")
             var parsedData = JSON.parse(dataFromDir)
-            var dataTitle = parsedData.episodes;
+            dataTitle = parsedData.episodes;
             console.log("this anime is already in the collection!")
             socket.emit("OnSearchResult", {dataTitle: dataTitle})
         }else {
             await AnimeSearch(nameSearch.MoviveTitle);
             var dataFromDir = fs.readFileSync("./public/Movie/Collection/" + nameSearch.MoviveTitle + ".json")
             var parsedData = JSON.parse(dataFromDir)
-            var dataTitle = parsedData.episodes;
+            dataTitle = parsedData.episodes;
             socket.emit("OnSearchResult", {dataTitle: dataTitle})
         }
     })
