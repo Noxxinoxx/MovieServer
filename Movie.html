@@ -30,11 +30,19 @@
             var DownloadedMovies = document.getElementById("movieContainter").hidden = true;
             for(i = 0; i < data.dataTitle.length; i++) {
                 videos.push(data.dataTitle[i].title)
+                var div = document.createElement("div")
+                var downloadButton = document.createElement("button")
+                downloadButton.innerHTML = "Download " + data.dataTitle[i].title;
+                downloadButton.setAttribute("name", data.dataTitle[i].title)
                 var pTag = document.createElement("p")
                 pTag.innerHTML = data.dataTitle[i].title
                 pTag.setAttribute("name", data.dataTitle[i].title)
-                document.body.appendChild(pTag)
+                div.setAttribute("name", "div " + data.dataTitle[i].title)
+                div.appendChild(pTag)
+                div.appendChild(downloadButton)
+                document.body.appendChild(div)
                 CallEvent(pTag)
+                CallEventDownloadButton(downloadButton, data.nameCollection)
             }
         })
         socket.on("videos", (data) => {
@@ -60,6 +68,12 @@
             pTag.addEventListener("click", () => {
                 socket.emit("videoClicked", {MovieClicked: pTag.getAttribute("name")})
                 console.log(pTag.getAttribute("name"))        
+            })
+        }
+        function CallEventDownloadButton(Button, nameCollection) {
+            Button.addEventListener("click", () =>{
+                socket.emit("MovieClickedDownloadButton", {MovieDownloadButtonEpisodeName: Button.getAttribute("name"), MovieDownloadCollectionName: nameCollection})
+                console.log("emited MovieButton" + Button.getAttribute("name"))
             })
         }
         socket.on("movie", (MovieData) => {
