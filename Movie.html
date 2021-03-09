@@ -1,18 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movies</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
-</head>
-<body>
-    <input type="text" id="searchBar">
-    <input type="button" id="emit">
-    <div id="movieContainter">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Movies</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
+    </head>
+    <body>
+        <input type="text" id="searchBar" />
+        <input type="button" id="emit" />
+        <div id="movieContainter"></div>
+        <div id="afterSearch"></div>
 
-    </div>
-    <div id="afterSearch">
+        <script>
+            var socket = io("/Movies");
+            var videos = [];
+            document.getElementById("emit").onclick = () => {
+                var bar = document.getElementById("searchBar").value;
+                console.log(bar);
+                socket.emit("animesearch", { MoviveTitle: bar });
+            };
 
     </div>
     
@@ -59,9 +66,14 @@
                     document.body.appendChild(pTag)
                     CallEvent(pTag)
                 }
-                
-                
-                
+            });
+            function CallEvent(pTag) {
+                pTag.addEventListener("click", () => {
+                    socket.emit("videoClicked", {
+                        MovieClicked: pTag.getAttribute("name"),
+                    });
+                    console.log(pTag.getAttribute("name"));
+                });
             }
         })
         function CallEvent(pTag) {

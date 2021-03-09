@@ -1,26 +1,29 @@
 {
-  "name": "movieserver",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nooaandersson/MovieServer.git"
-  },
-  "author": "Nox",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/nooaandersson/MovieServer/issues"
-  },
-  "homepage": "https://github.com/nooaandersson/MovieServer#readme",
-  "dependencies": {
-    "anigrab": "^1.9.11",
-    "express": "^4.17.1",
-    "handlebars": "^4.7.7",
-    "request": "^2.88.2",
-    "socket.io": "^3.1.1"
-  }
+    "name": "movieserver",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/nooaandersson/MovieServer.git"
+    },
+    "author": "Nox",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/nooaandersson/MovieServer/issues"
+    },
+    "homepage": "https://github.com/nooaandersson/MovieServer#readme",
+    "dependencies": {
+        "anigrab": "^1.9.11",
+        "express": "^4.17.1",
+        "handlebars": "^4.7.7",
+        "request": "^2.88.2",
+        "socket.io": "^3.1.1"
+    },
+    "devDependencies": {
+        "prettier": "^2.2.1"
+    }
 }
