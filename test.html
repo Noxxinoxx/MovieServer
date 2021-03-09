@@ -1,27 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WOOPMOVIE</title>
-    <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
-</head>
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>WOOPMOVIE</title>
+        <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
+    </head>
 
-<body>
-    <video src="" id="video" controls></video>
-    <script>
-        var socket = io("/Wonder")
-        socket.on("renderMovieFromHandleBars", (data) => {
-            var video = document.getElementById("video")
-            video.setAttribute("src", "http://localhost:3001/static/" + data.ID + "/Movie/" + data.Title)
-            console.log(data)
-        })   
-    </script>    
-    
-    
-
-</body>
-
+    <body>
+        <video src="" id="video" controls></video>
+        <script>
+            var socket = io("/Wonder");
+            socket.on("renderMovieFromHandleBars", (data) => {
+                var video = document.getElementById("video");
+                video.setAttribute(
+                    "src",
+                    "http://localhost:3001/static/" +
+                        data.ID +
+                        "/Movie/" +
+                        data.Title
+                );
+                console.log(data);
+            });
+        </script>
+    </body>
 </html>
