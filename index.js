@@ -5,7 +5,8 @@ var server = http.createServer(app)
 var io = require('socket.io')(server);
 var fs = require("fs")
 var https = require("https")
-var request = require("request")
+var request = require("request");
+const { response } = require("express");
 //no anime 
 //gogoanime
 //twist
@@ -137,9 +138,14 @@ io.of("/Movies").on("connection", (socket) => {
                 console.log("hjhh")
                 withoutSpaces = withoutSpaces.split(":").join("")
             }
-            if(withoutSpaces.includes("-")) {
+            console.log(withoutSpaces)
+            if(withoutSpaces.includes("–")) {
                 console.log("hejjjjj")
-                withoputSpaces = withoutSpaces.split("–").join("")
+                withoutSpaces = withoutSpaces.split("–").join("")
+            }
+            ///Users/nox/Documents/GitHub/MovieServer/public/Movie/SK∞Episode04.mp4
+            if(withoutSpaces.includes("∞")) {
+                withoutSpaces = withoutSpaces.split("∞").join("")
             }
             var file = fs.createWriteStream("./public/Movie/" + withoutSpaces.replace(" ", "") + ".mp4")
             //https://mountainoservo0002.animecdn.com/SK8-the-Infinity/SK8-the-Infinity-Episode-01-1080p.mp4
@@ -150,15 +156,19 @@ io.of("/Movies").on("connection", (socket) => {
                     uri: newLink,
                 })
                 reqq.pipe(file) 
+                var responsedata;
+                reqq.on( 'response', function ( dataa ) {
+                    console.log( dataa.headers[ 'content-length' ] );
+                    responsedata = dataa.headers[ 'content-length' ] ;
+                } );
                 reqq.on('data', function (chunk) {
                     console.log(chunk.length);
+                    socket.emit("DownloadBytes", {chunk: chunk, alldata : responsedata, title: data.MovieDownloadButtonEpisodeName})
                     if(chunk.length <= 200) {
                         socket.emit("alertMovieNotFound", {movieNotFound: "MovieNotFound!"})
                     }
                 });
-                reqq.on( 'response', function ( dataa ) {
-                    console.log( dataa.headers[ 'content-length' ] );
-                } );
+                
                 reqq.on('end', function() {
                     console.log("done req")
                 });   
