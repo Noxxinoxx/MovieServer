@@ -118,10 +118,22 @@ io.of("/Movies").on("connection", (socket) => {
             }
             newLink = newLink.replaceAt(22, "0")
             console.log(newLink)
-            var withoutSpaces = data.MovieDownloadButtonEpisodeName.replace(" ", "")
+            var withoutSpaces = data.MovieDownloadButtonEpisodeName
+            if(withoutSpaces.includes(" ")){
+                console.log("dfdf")
+                withoutSpaces = withoutSpaces.split(" ").join("")
+            }
+            if(withoutSpaces.includes(":")){
+                console.log("hjhh")
+                withoutSpaces = withoutSpaces.split(":").join("")
+            }
+            if(withoutSpaces.includes("-")) {
+                console.log("hejjjjj")
+                withoputSpaces = withoutSpaces.split("–").join("")
+            }
             var file = fs.createWriteStream("./public/Movie/" + withoutSpaces.replace(" ", "") + ".mp4")
             //https://mountainoservo0002.animecdn.com/SK8-the-Infinity/SK8-the-Infinity-Episode-01-1080p.mp4
-            
+            ///Users/nox/Documents/GitHub/MovieServer/public/Movie/BorutoNarutotheMovie–NarutogaHokageniNattaHiEpisode01.mp4
             try{
                 var reqq = request({
                     method: "GET", 
@@ -130,6 +142,9 @@ io.of("/Movies").on("connection", (socket) => {
                 reqq.pipe(file) 
                 reqq.on('data', function (chunk) {
                     console.log(chunk.length);
+                    if(chunk.length <= 200) {
+                        socket.emit("alertMovieNotFound", {movieNotFound: "MovieNotFound!"})
+                    }
                 });
                 reqq.on( 'response', function ( dataa ) {
                     console.log( dataa.headers[ 'content-length' ] );
