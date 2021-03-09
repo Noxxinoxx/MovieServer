@@ -21,33 +21,50 @@
                 socket.emit("animesearch", { MoviveTitle: bar });
             };
 
-            socket.on("OnSearchResult", (data) => {
-                var DownloadedMovies = (document.getElementById(
-                    "movieContainter"
-                ).hidden = true);
-                for (i = 0; i < data.dataTitle.length; i++) {
-                    videos.push(data.dataTitle[i].title);
-                    var pTag = document.createElement("p");
-                    pTag.innerHTML = data.dataTitle[i].title;
-                    pTag.setAttribute("name", data.dataTitle[i].title);
-                    document.body.appendChild(pTag);
-                    CallEvent(pTag);
-                }
-            });
-            socket.on("videos", (data) => {
-                console.log(data);
-                var div = document.getElementById("movieContainter");
-                for (i = 0; i < data.length; i++) {
-                    if (data[i] == "Collection") {
-                        console.log("");
-                    } else {
-                        videos.push(data[i]);
-                        var pTag = document.createElement("p");
-                        pTag.innerHTML = data[i];
-                        pTag.setAttribute("name", data[i]);
-                        document.body.appendChild(pTag);
-                        CallEvent(pTag);
-                    }
+    </div>
+    
+    <script>
+        var socket = io("/Movies")
+        var videos = []
+        document.getElementById("emit").onclick = () =>{
+            var bar = document.getElementById("searchBar").value
+            console.log(bar)
+            socket.emit("animesearch", {MoviveTitle: bar})
+        }
+
+
+        socket.on("OnSearchResult", (data) => {
+            var DownloadedMovies = document.getElementById("movieContainter").hidden = true;
+            for(i = 0; i < data.dataTitle.length; i++) {
+                videos.push(data.dataTitle[i].title)
+                var div = document.createElement("div")
+                var downloadButton = document.createElement("button")
+                downloadButton.innerHTML = "Download " + data.dataTitle[i].title;
+                downloadButton.setAttribute("name", data.dataTitle[i].title)
+                var pTag = document.createElement("p")
+                pTag.innerHTML = data.dataTitle[i].title
+                pTag.setAttribute("name", data.dataTitle[i].title)
+                div.setAttribute("name", "div " + data.dataTitle[i].title)
+                div.appendChild(pTag)
+                div.appendChild(downloadButton)
+                document.body.appendChild(div)
+                CallEvent(pTag)
+                CallEventDownloadButton(downloadButton, data.nameCollection)
+            }
+        })
+        socket.on("videos", (data) => {
+            console.log(data)
+            var div = document.getElementById("movieContainter")
+            for(i = 0; i < data.length; i++) {
+                if(data[i] == "Collection") {
+                    console.log("")
+                }else {
+                    videos.push(data[i])
+                    var pTag = document.createElement("p")
+                    pTag.innerHTML = data[i]
+                    pTag.setAttribute("name", data[i])
+                    document.body.appendChild(pTag)
+                    CallEvent(pTag)
                 }
             });
             function CallEvent(pTag) {
@@ -58,14 +75,25 @@
                     console.log(pTag.getAttribute("name"));
                 });
             }
-            socket.on("movie", (MovieData) => {
-                document.location.replace(
-                    "http://localhost:3001/" +
-                        MovieData.Title +
-                        "?id=" +
-                        MovieData.ID
-                );
-            });
-        </script>
-    </body>
+        })
+        function CallEvent(pTag) {
+            pTag.addEventListener("click", () => {
+                socket.emit("videoClicked", {MovieClicked: pTag.getAttribute("name")})
+                console.log(pTag.getAttribute("name"))        
+            })
+        }
+        function CallEventDownloadButton(Button, nameCollection) {
+            Button.addEventListener("click", () =>{
+                socket.emit("MovieClickedDownloadButton", {MovieDownloadButtonEpisodeName: Button.getAttribute("name"), MovieDownloadCollectionName: nameCollection})
+                console.log("emited MovieButton" + Button.getAttribute("name"))
+            })
+        }
+        socket.on("movie", (MovieData) => {
+            document.location.replace("http://localhost:3001/" + MovieData.Title + "?id=" + MovieData.ID)
+        })
+
+
+
+    </script>
+</body>
 </html>
