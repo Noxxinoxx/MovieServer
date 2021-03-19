@@ -7,10 +7,57 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
     </head>
     <body>
-        <input type="text" id="searchBar" />
-        <input type="button" id="emit" />
-        <div id="movieContainter"></div>
-        <div id="afterSearch"></div>
+        <div id="SearchEmit">
+            <input type="text" id="searchBar" />
+            <input type="button" id="emit" value="Search" />
+        </div>
+       
+        <div id="Parent">
+            <div id="movieContainter" class="flex-item ">
+                <h4 style="text-align: center;"> Current liberary!</h4>
+            </div>
+            <div id="afterSearch" class="flex-item">
+                <h4 style="text-align: center;">Search result!</h4>
+            </div>
+        </div>
+        
+        <style>
+
+            body {
+                height:100%;
+                margin:0;
+                padding:0;
+                background: 
+                linear-gradient(45deg,  transparent 0%, transparent 57%, #12379e 100%),
+                linear-gradient(-45deg, #43be24 0%,  #06bb76 0.3%, #06612c 112%,  transparent 11% ),
+                linear-gradient(-90deg, #0b0a2c 100%, #0e97d6 65%, transparent 20% )
+                ;
+            }
+
+            #SearchEmit {
+                text-align: center;
+            }
+            #Parent{
+                display: flex;
+                flex-flow: row wrap;
+                margin-top: 1%;
+                justify-content: space-around;
+            }
+
+            .flex-item {
+               
+                padding: 5px;
+                width: 30%;
+                height: 100%;
+                
+                font-size: 25px;
+                font-family:Georgia, 'Times New Roman', Times, serif
+            }
+
+
+        </style>
+
+
 
         <script>
             var socket = io("/Movies");
@@ -34,7 +81,16 @@
 
 
         socket.on("OnSearchResult", (data) => {
-            var DownloadedMovies = document.getElementById("movieContainter").hidden = true;
+            //var DownloadedMovies = document.getElementById("movieContainter").hidden = true;
+            var MovieCont = document.getElementById("afterSearch");
+            var MassDownload = document.createElement("button")
+            MassDownload.innerHTML = "Mass Download all episodes"
+            MassDownload.setAttribute("title", "This will take a long time, it will download all episode manu!")
+            MassDownload.addEventListener("click", () => {
+                socket.emit("MovieMassDownloader", {dataTitle : data.dataTitle, nameColl: data.nameCollection})
+            })
+            MovieCont.appendChild(MassDownload)
+            //rewarite to combine all episodes to sesions;
             for(i = 0; i < data.dataTitle.length; i++) {
                 videos.push(data.dataTitle[i].title)
                 var div = document.createElement("div")
@@ -50,25 +106,134 @@
                 div.appendChild(pTag)
                 div.appendChild(downloadButton)
 
-                document.body.appendChild(div)
+                MovieCont.appendChild(div)
                 CallEvent(pTag)
                 CallEventDownloadButton(downloadButton, data.nameCollection)
             }
+            
         })
         socket.on("videos", (data) => {
             console.log(data)
+            
             var div = document.getElementById("movieContainter")
+            var ArrayOfMoviesAndSesoins = [];
+            var ArrayWithEposidoName = [];
+            var ArrayMovies = [];
             for(i = 0; i < data.length; i++) {
+                
                 if(data[i] == "Collection") {
                     console.log("")
                 }else {
-                    videos.push(data[i])
+                    //Render Season;
+                    ArrayWithEposidoName.push(data[i])
+                    var FullString = data[i]
+                    var SeasonNameArray = []
+                    var createSeasonDiv = document.createElement("div")
+                    var FullStringLength = data[i].length; 
+                    var NameCal = data[i].search("Episode")
+                    var DivEpi = document.createElement("div")
+                    var NameC = FullStringLength - NameCal;
+                    var NewSomething = FullStringLength - NameC;
+                    for(namei = 0; namei < NewSomething; namei++) {
+                        SeasonNameArray.push(FullString[namei])
+                    }
+                    var Name = SeasonNameArray.join("")
                     var pTag = document.createElement("p")
-                    pTag.innerHTML = data[i]
-                    pTag.setAttribute("name", data[i])
-                    document.body.appendChild(pTag)
-                    CallEvent(pTag)
+                    
+                    pTag.innerHTML = Name; 
+
+                    if(NameCal == -1) {
+                        var pp = document.createElement("p")
+                        pp.innerHTML = data[i]
+                        pp.setAttribute("id", data[i])
+                        div.appendChild(pp)
+                    }
+                    
+                    
+                    if(ArrayOfMoviesAndSesoins.includes(Name) == false) {
+                        pTag.setAttribute("id", Name)
+                        div.appendChild(pTag); 
+                        DivEpi.setAttribute("id", Name+"div")
+                        div.appendChild(DivEpi)
+                        ArrayMovies.push(Name) 
+                    }else {
+                        console.log("")
+                    }
+                    ArrayOfMoviesAndSesoins.push(Name);
+                    
+
+                    //compare the two arrays.
+                    //TODO OVERHERE make the thing work.
+
+
+                    
+                    
+
                 }
+
+                
+
+
+
+
+            }
+            console.log(ArrayOfMoviesAndSesoins)
+            for(ii = 0; ii < ArrayMovies.length; ii++) {
+                var pTag = document.getElementById(ArrayMovies[ii])
+                
+                var div = document.getElementById(ArrayMovies[ii]+"div")
+                if(pTag == null) {
+                    console.log("")
+                }else {
+                    onClickSeason(pTag, ArrayMovies[ii], getOccurrence(ArrayOfMoviesAndSesoins, ArrayMovies[ii]), div)
+                    console.log(getOccurrenceValue(ArrayOfMoviesAndSesoins, ArrayMovies[ii]))
+                }
+
+                
+            }
+
+            function onClickSeason(pTag, arrayThing, occru, Div) {
+                var gg = []
+                pTag.addEventListener("click", () => {
+                    for(i = 1; i < occru + 1; i++) {
+                        var y = document.createElement("p")
+                        y.innerHTML = i;
+                        
+                        Div.appendChild(y)
+                        
+
+                        if(i < 10) {
+                            y.setAttribute("name", gg[i] +"Episode" + "0" + i + ".mp4")
+                        }else {
+                            y.setAttribute("name", gg[i] +"Episode" + i + ".mp4")
+                        }
+                        CallEvent(y)
+                        
+
+                    }
+                })
+                var EpisodeArray = getOccurrenceValue(ArrayOfMoviesAndSesoins, arrayThing)
+                for(iii = -1; iii <= EpisodeArray.length; iii++) {
+                    gg.push(ArrayOfMoviesAndSesoins[EpisodeArray[iii]]);
+                }
+
+            }
+
+            function getOccurrence(array, value) {
+                var count = 0;
+                array.forEach((v) => (v === value && count++));
+                return count;
+            }
+            function getOccurrenceValue(array, value) {
+                var CreateArray = []
+                for(i = 0; i < array.length; i++) {
+                    if(array[i] == value) {
+                        
+                        CreateArray.push(i)
+                        
+                    }
+                }
+                return CreateArray
             }
             function CallEvent(pTag) {
                 pTag.addEventListener("click", () => {
@@ -97,8 +262,15 @@
         var gg = true;
         var pp = 0;
         var p; 
+        socket.on("doneWithDownload", () => {
+            gg = true;
+            pp = 0;
+            p = null;
+        })
+        
         socket.on("DownloadBytes",(data) => {
             console.log(data.title)
+            console.clear()
             var view1 = new DataView(data.chunk)
             
             pp = pp + view1.byteLength;
@@ -113,7 +285,7 @@
 
         })
 
-
+        
 
     </script>
 </body>

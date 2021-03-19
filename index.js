@@ -42,6 +42,7 @@ async function AnimeSearch(searchWord) {
         console.log(error);
     }
 }
+app.use("/Backgrounds/", express.static("public/Background/"))
 app.get("/", (req, res) => {
     res.sendFile("index.html", { root: __dirname });
 });
@@ -53,6 +54,7 @@ io.of("/Wonder").on("connection", (socket) => {
     console.log("Users connected with aoutcode: " + randomID);
     console.log("Movie that are played is: " + movieClicked);
     app.use("/static/" + randomID, express.static("public"));
+
 });
 io.of("/Movies").on("connection", (socket) => {
     var MovieFolder = fs.readdirSync("./public/Movie/");
@@ -69,15 +71,15 @@ io.of("/Movies").on("connection", (socket) => {
             var parsedData = JSON.parse(dataFromDir);
             dataTitle = parsedData.episodes;
             console.log("this anime is already in the collection!")
-            socket.emit("OnSearchResult", {dataTitle: dataTitle , nameCollection: nameSearch.MoviveTitle})
-        }else {
+            socket.emit("OnSearchResult", { dataTitle: dataTitle, nameCollection: nameSearch.MoviveTitle })
+        } else {
             await AnimeSearch(nameSearch.MoviveTitle);
             var dataFromDir = fs.readFileSync(
                 "./public/Movie/Collection/" + nameSearch.MoviveTitle + ".json"
             );
             var parsedData = JSON.parse(dataFromDir);
             dataTitle = parsedData.episodes;
-            socket.emit("OnSearchResult", {dataTitle: dataTitle, nameCollection: nameSearch.MoviveTitle})
+            socket.emit("OnSearchResult", { dataTitle: dataTitle, nameCollection: nameSearch.MoviveTitle })
         }
     });
     socket.on("videoClicked", (data) => {
@@ -95,111 +97,231 @@ io.of("/Movies").on("connection", (socket) => {
         })
     })
     socket.on("MovieClickedDownloadButton", async (data) => {
+        DownloadMovie(data)
+    })
+    var Moviearray;
+    var nameColl;
+    socket.on("MovieMassDownloader", (data) => {
+        console.log(data)
+        var MovieArray = []
+        for (i = 0; i < data.dataTitle.length; i++) {
+            MovieArray.push(data.dataTitle[i].title)
+        }
+        Moviearray = MovieArray
+        nameColl = data.nameColl;
+        LoadnewMassDownloadData(MovieArray, data.nameColl);
+
+    })
+
+
+    var ih = 0;
+    function LoadnewMassDownloadData(MovieArray, nameColll) {
+        //problem is that it get called by an undefined becaus when the funkction is called again
+        //the varibles are not defined.
+
+        ih = ih + 1;
+        if (Moviearray.length < ih) {
+            socket.emit("DoneWithMassDownload")
+            console.log("Done With Mass Download")
+
+        }
+
+        var dataa = {
+            MovieDownloadCollectionName: nameColl,
+            MovieDownloadButtonEpisodeName: Moviearray[ih],
+
+        }
+        DownloadMovie(dataa, true)
+    }
+    socket.on("disconnect", (user) => {
+        console.log("Video viewer disconneced")
+    })
+    async function DownloadMovie(data, MassDownload) {
         var CollectionMovie = fs.readFileSync("./public/Movie/Collection/" + data.MovieDownloadCollectionName + ".json")
         var parsedColletion = JSON.parse(CollectionMovie)
         console.log(parsedColletion)
-        var index = parsedColletion.episodes.findIndex(function(item, i) {
+        var index = parsedColletion.episodes.findIndex(function (item, i) {
             return item.title === data.MovieDownloadButtonEpisodeName;
         });
         console.log(index)
         console.log(parsedColletion.episodes[index].url)
-        
-        await request({uri:parsedColletion.episodes[index].url}, async function(error, res, body) {
-            
-            var stringThing = "";
-            console.log(body)
-            var getMovieDownloadLink = body.search(".mp4")
-            console.log(getMovieDownloadLink)
 
-            loop1 : for(var i = getMovieDownloadLink - 1; i >= 0; i-- ) {
-                if(body.charAt(i) == '"') {
+        await request({ uri: parsedColletion.episodes[index].url }, async function (error, res, body) {
+
+            var stringThing = "";
+
+            var getMovieDownloadLink = body.search(".mp4")
+
+
+            loop1: for (var i = getMovieDownloadLink - 1; i >= 0; i--) {
+                if (body.charAt(i) == '"') {
                     break loop1;
-                }else{
+                } else {
                     stringThing += body.charAt(i);
                 }
             }
             console.log(reverseString(stringThing) + ".mp4")
             var newLink = reverseString(stringThing) + ".mp4";
-            String.prototype.replaceAt = function(index, replacement) {
+            String.prototype.replaceAt = function (index, replacement) {
                 if (index >= this.length) {
                     return this.valueOf();
                 }
-             
+
                 return this.substring(0, index) + replacement + this.substring(index + 1);
             }
             newLink = newLink.replaceAt(22, "0")
-            console.log(newLink)
+
             var withoutSpaces = data.MovieDownloadButtonEpisodeName
-            if(withoutSpaces.includes(" ")){
+            if (withoutSpaces.includes(" ")) {
                 console.log("dfdf")
                 withoutSpaces = withoutSpaces.split(" ").join("")
             }
-            if(withoutSpaces.includes(":")){
+            if (withoutSpaces.includes(":")) {
                 console.log("hjhh")
                 withoutSpaces = withoutSpaces.split(":").join("")
             }
             console.log(withoutSpaces)
-            if(withoutSpaces.includes("–")) {
+            if (withoutSpaces.includes("–")) {
                 console.log("hejjjjj")
                 withoutSpaces = withoutSpaces.split("–").join("")
             }
             ///Users/nox/Documents/GitHub/MovieServer/public/Movie/SK∞Episode04.mp4
-            if(withoutSpaces.includes("∞")) {
+            if (withoutSpaces.includes("∞")) {
                 withoutSpaces = withoutSpaces.split("∞").join("")
             }
+
             var file = fs.createWriteStream("./public/Movie/" + withoutSpaces.replace(" ", "") + ".mp4")
+            // om inte länken funkar så är det https://v6.4animu.me/Nanatsu-no-Taizai/Nanatsu-no-Taizai-Episode-01-1080p.mp4
+            // https://v6.4animu.me/NameAvServer/NameAvSerien-Episod-Nummer-kvalite
+            // all mellanrum blir bindessträck
             //https://mountainoservo0002.animecdn.com/SK8-the-Infinity/SK8-the-Infinity-Episode-01-1080p.mp4
             ///Users/nox/Documents/GitHub/MovieServer/public/Movie/BorutoNarutotheMovie–NarutogaHokageniNattaHiEpisode01.mp4
-            try{
+
+
+            try {
                 var reqq = request({
-                    method: "GET", 
+                    method: "GET",
                     uri: newLink,
                 })
-                reqq.pipe(file) 
+
                 var responsedata;
-                reqq.on( 'response', function ( dataa ) {
-                    console.log( dataa.headers[ 'content-length' ] );
-                    responsedata = dataa.headers[ 'content-length' ] ;
-                } );
-                reqq.on('data', function (chunk) {
-                    console.log(chunk.length);
-                    socket.emit("DownloadBytes", {chunk: chunk, alldata : responsedata, title: data.MovieDownloadButtonEpisodeName})
-                    if(chunk.length <= 200) {
-                        socket.emit("alertMovieNotFound", {movieNotFound: "MovieNotFound!"})
+                reqq.pipe(file)
+                reqq.on('response', async function (dataa) {
+                    console.log(dataa.headers['content-length']);
+                    responsedata = dataa.headers['content-length'];
+                    if (responsedata <= 300) {
+                        socket.emit("alertMovieNotFound", { movieNotFound: "MovieNotFound!" })
+                        console.log("no address")
+                        var assemble = assembleNewLink(newLink)
+                        var doneWithotherDownload = await DownloadFromOtherAdress(assemble, data, file, MassDownload);
+                    }else {
+                        reqq.on('data', async function (chunk) {
+                            console.log(chunk.length);
+                            socket.emit("DownloadBytes", { chunk: chunk, alldata: responsedata, title: data.MovieDownloadButtonEpisodeName })
+
+                        });
+
+                        reqq.on('end', async function () {
+
+                            if (MassDownload == true) {
+                                LoadnewMassDownloadData(null)
+                            } else {
+                                console.log("done req")
+                                socket.emit("doneWithDownload")
+                            }
+
+
+
+                        });
                     }
                 });
-                
-                reqq.on('end', function() {
-                    console.log("done req")
-                });   
-            }catch(err){
+
+            } catch (err) {
                 console.log(err)
             }
             console.log("done")
         })
 
-        
 
-    })
 
-    socket.on("disconnect", (user) => {
-        console.log("Video viewer disconneced")
-    })
+    }
+
+    function assembleNewLink(OldLink) {
+        var l = "https://mountainoservo0002.animecdn.com/SK8-the-Infinity/SK8-the-Infinity-Episode-01-1080p.mp4"
+
+        var linkLength = OldLink.length;
+        var getWhere = OldLink.search(".com")
+        var LinkArray = [];
+        console.log(getWhere, linkLength, OldLink[35 + 3])
+        for (i = getWhere + 4; i < linkLength; i++) {
+            LinkArray.push(OldLink[i])
+        }
+        console.log(LinkArray.join(""))
+        var link = "https://v6.4animu.me" + LinkArray.join("");
+
+        return link;
+    }
+
+
+    async function DownloadFromOtherAdress(newLink, data, file, MassDownload) {
+        // LINK : https://v6.4animu.me/Nanatsu-no-Taizai-Imashime-no-Fukkatsu/Nanatsu-no-Taizai-Imashime-no-Fukkatsu-Episode-01-1080p.mp4
+
+        console.log("getCalled")
+        try {
+            var reqq = request({
+                method: "GET",
+                uri: newLink,
+            })
+            reqq.pipe(file)
+            var responsedata;
+            reqq.on('response', function (dataa) {
+                console.log(dataa.headers['content-length']);
+                responsedata = dataa.headers['content-length'];
+            });
+            reqq.on('data', function (chunk) {
+                console.log(chunk.length);
+                socket.emit("DownloadBytes", { chunk: chunk, alldata: responsedata, title: data.MovieDownloadButtonEpisodeName })
+            });
+
+            reqq.on('end', function () {
+
+                console.log("done req")
+                socket.emit("doneWithDownload")
+                if (MassDownload == true) {
+                    LoadnewMassDownloadData(null)
+                } else {
+                    console.log("done req")
+                    socket.emit("doneWithDownload")
+                }
+            });
+        } catch (err) {
+            console.log(err)
+        }
+
+
+
+        console.log("done")
+
+        return "done";
+    }
 })
+
+
+
 
 function reverseString(str) {
     // Step 1. Use the split() method to return a new array
     var splitString = str.split(""); // var splitString = "hello".split("");
     // ["h", "e", "l", "l", "o"]
- 
+
     // Step 2. Use the reverse() method to reverse the new created array
     var reverseArray = splitString.reverse(); // var reverseArray = ["h", "e", "l", "l", "o"].reverse();
     // ["o", "l", "l", "e", "h"]
- 
+
     // Step 3. Use the join() method to join all elements of the array into a string
     var joinArray = reverseArray.join(""); // var joinArray = ["o", "l", "l", "e", "h"].join("");
     // "olleh"
-    
+
     //Step 4. Return the reversed string
     return joinArray; // "olleh"
 }
