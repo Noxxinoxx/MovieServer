@@ -9,7 +9,7 @@
 <body>
     <input type="text" id="username">
     <input type="text" id="password">
-    <input type="button" id="emit">
+    <input type="button" id="emit" value="Login!">
     
     <script>
         var socket = io("/")
@@ -20,7 +20,7 @@
         socket.on("verified", (data) => {
             console.log(data.ID)
             if(data.verifed == true) {
-                document.location.replace("http://localhost:3001/Movies?id=" + data.ID)
+                document.location.replace("http://localhost:3001/" + data.ID + "/Movies/")
             }else if(data.verifed == false) {
                 alert("wrong password or username")
             }

@@ -3,13 +3,17 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Movies</title>
+        <title>Plox Movie Collection</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
     </head>
     <body>
         <div id="SearchEmit">
-            <input type="text" id="searchBar" />
-            <input type="button" id="emit" value="Search" />
+            <input type="text" id="searchBar" placeholder="Regular Search" />
+            <input type="button" id="emit" value="Search"  />
+        </div>
+        <div id="ForcedMovieFinder">
+            <input type="text" id="ForcedsearchBar" placeholder="if you cant find your Movie" />
+            <input type="button" id="Forcedemit" value="Search" onclick="ForcedMovieFinder()" />
         </div>
        
         <div id="Parent">
@@ -37,6 +41,9 @@
             #SearchEmit {
                 text-align: center;
             }
+            #ForcedMovieFinder {
+                text-align: center;
+            }
             #Parent{
                 display: flex;
                 flex-flow: row wrap;
@@ -60,19 +67,40 @@
 
 
         <script>
-            var socket = io("/Movies");
-            var videos = [];
-            document.getElementById("emit").onclick = () => {
-                var bar = document.getElementById("searchBar").value;
-                console.log(bar);
-                socket.emit("animesearch", { MoviveTitle: bar });
-            };
+        
+        
 
-   
-    
-    
+        
         var socket = io("/Movies")
         var videos = []
+        var UserID;
+
+        //hardcodedURL replace if nesecesrry;
+        var url = []
+        var url2 = []
+        var id = window.location.href
+        
+        for(l = 0; l < id.length; l++) {
+            if(id[l] == "/") {
+                url.push(l)
+            }
+        }
+
+        for(ll = url[2] + 1; ll < url[3]; ll++) {
+            url2.push(id[ll])
+        }
+        id = url2.join("")
+        console.log(url2)
+       
+
+        console.log(url)
+
+
+        console.log(id)
+        socket.emit("id", id)
+
+
+
         document.getElementById("emit").onclick = () =>{
             var bar = document.getElementById("searchBar").value
             console.log(bar)
@@ -80,6 +108,11 @@
         }
 
 
+        function ForcedMovieFinder() {
+            var SearchThing = document.getElementById("ForcedForcedsearchBar")
+            var SearchButton = document.getElementById("Forcedemit");
+
+        }
         socket.on("OnSearchResult", (data) => {
             //var DownloadedMovies = document.getElementById("movieContainter").hidden = true;
             var MovieCont = document.getElementById("afterSearch");
@@ -105,7 +138,6 @@
                 div.setAttribute("id", data.dataTitle[i].title)
                 div.appendChild(pTag)
                 div.appendChild(downloadButton)
-
                 MovieCont.appendChild(div)
                 CallEvent(pTag)
                 CallEventDownloadButton(downloadButton, data.nameCollection)
@@ -113,24 +145,25 @@
             
         })
         socket.on("videos", (data) => {
-            console.log(data)
+            console.log(data.MovieFolder)
+            UserID = data.ID
             
             var div = document.getElementById("movieContainter")
             var ArrayOfMoviesAndSesoins = [];
             var ArrayWithEposidoName = [];
             var ArrayMovies = [];
-            for(i = 0; i < data.length; i++) {
+            for(i = 0; i < data.MovieFolder.length; i++) {
                 
                 if(data[i] == "Collection") {
                     console.log("")
                 }else {
                     //Render Season;
-                    ArrayWithEposidoName.push(data[i])
-                    var FullString = data[i]
+                    ArrayWithEposidoName.push(data.MovieFolder[i])
+                    var FullString = data.MovieFolder[i]
                     var SeasonNameArray = []
                     var createSeasonDiv = document.createElement("div")
-                    var FullStringLength = data[i].length; 
-                    var NameCal = data[i].search("Episode")
+                    var FullStringLength = data.MovieFolder[i].length; 
+                    var NameCal = data.MovieFolder[i].search("Episode")
                     var DivEpi = document.createElement("div")
                     var NameC = FullStringLength - NameCal;
                     var NewSomething = FullStringLength - NameC;
@@ -144,8 +177,8 @@
 
                     if(NameCal == -1) {
                         var pp = document.createElement("p")
-                        pp.innerHTML = data[i]
-                        pp.setAttribute("id", data[i])
+                        pp.innerHTML = data.MovieFolder[i]
+                        pp.setAttribute("id", data.MovieFolder[i])
                         div.appendChild(pp)
                     }
                     
@@ -257,7 +290,7 @@
             })
         }
         socket.on("movie", (MovieData) => {
-            document.location.replace("http://localhost:3001/" + MovieData.Title + "?id=" + MovieData.ID)
+            document.location.replace("http://localhost:3001/" + MovieData.ID + "/" + MovieData.Title )
         })
         var gg = true;
         var pp = 0;
@@ -284,9 +317,22 @@
             divEpisode.appendChild(p)
 
         })
-
         
 
+        socket.on("UserId", () =>  {
+            socket.emit("UserIdClient", UserID)
+            console.log("hej")
+        })
+        
+        function getParameterByName(name, url = window.location.href) {
+            name = name.replace(/[\[\]]/g, '\\$&');
+            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+        
     </script>
 </body>
 </html>

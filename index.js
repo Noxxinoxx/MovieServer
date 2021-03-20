@@ -18,7 +18,6 @@ const { response } = require("express");
 var { search, getAnime, getQualities } = require("anigrab").sites.siteLoader(
     "4anime"
 );
-var qualities;
 var users = [];
 let randomID;
 let movieClicked;
@@ -42,23 +41,51 @@ async function AnimeSearch(searchWord) {
         console.log(error);
     }
 }
+
+//fix watch together;
+
+
+
+
 app.use("/Backgrounds/", express.static("public/Background/"))
 app.get("/", (req, res) => {
     res.sendFile("index.html", { root: __dirname });
 });
 io.of("/Wonder").on("connection", (socket) => {
+    socket.on("id", (data) => {
+        socket.id = data;
+        console.log(socket.id)
+    })
+
+
     socket.emit("renderMovieFromHandleBars", {
         Title: movieClicked,
-        ID: randomID,
+        ID: socket.id,
     });
-    console.log("Users connected with aoutcode: " + randomID);
+    console.log("Users connected with aoutcode: " + socket.id);
     console.log("Movie that are played is: " + movieClicked);
-    app.use("/static/" + randomID, express.static("public"));
+    app.use("/static/" + socket.id, express.static("public"));
+    socket.on("disconnect", () => {
 
+        console.log("user disconneected");
+        console.log(users)
+        var arraycontainsturtles = users.indexOf(socket.id)
+        console.log(arraycontainsturtles)
+        users.splice(arraycontainsturtles, 1)
+        console.log(users)
+
+    });
 });
 io.of("/Movies").on("connection", (socket) => {
-    var MovieFolder = fs.readdirSync("./public/Movie/");
-    socket.emit("videos", MovieFolder);
+
+    socket.on("id", (data) => {
+        socket.id = data;
+        console.log(socket.id)
+    })
+
+    
+    var MovieFolde = fs.readdirSync("./public/Movie/");
+    socket.emit("videos", { MovieFolder: MovieFolde, ID: socket.id });
 
     socket.on("animesearch", async (nameSearch) => {
         console.log("got Info " + nameSearch.MoviveTitle);
@@ -83,17 +110,12 @@ io.of("/Movies").on("connection", (socket) => {
         }
     });
     socket.on("videoClicked", (data) => {
-        socket.emit("movie", { Title: data.MovieClicked, ID: randomID });
+        socket.emit("movie", { Title: data.MovieClicked, ID: socket.id });
         movieClicked = data.MovieClicked;
-        app.get("/" + data.MovieClicked, (req, res) => {
-            console.log(req.query.id);
-            console.log(randomID);
-            if (req.query.id == randomID) {
-                res.sendFile("test.html", { root: __dirname });
-            } else {
-                console.log("hehe");
-                res.status(404);
-            }
+        app.get("/" + socket.id + "/" + data.MovieClicked, (req, res) => {
+            
+            res.sendFile("test.html", { root: __dirname });
+            
         })
     })
     socket.on("MovieClickedDownloadButton", async (data) => {
@@ -112,8 +134,6 @@ io.of("/Movies").on("connection", (socket) => {
         LoadnewMassDownloadData(MovieArray, data.nameColl);
 
     })
-
-
     var ih = 0;
     function LoadnewMassDownloadData(MovieArray, nameColll) {
         //problem is that it get called by an undefined becaus when the funkction is called again
@@ -133,9 +153,7 @@ io.of("/Movies").on("connection", (socket) => {
         }
         DownloadMovie(dataa, true)
     }
-    socket.on("disconnect", (user) => {
-        console.log("Video viewer disconneced")
-    })
+
     async function DownloadMovie(data, MassDownload) {
         var CollectionMovie = fs.readFileSync("./public/Movie/Collection/" + data.MovieDownloadCollectionName + ".json")
         var parsedColletion = JSON.parse(CollectionMovie)
@@ -214,7 +232,7 @@ io.of("/Movies").on("connection", (socket) => {
                         console.log("no address")
                         var assemble = assembleNewLink(newLink)
                         var doneWithotherDownload = await DownloadFromOtherAdress(assemble, data, file, MassDownload);
-                    }else {
+                    } else {
                         reqq.on('data', async function (chunk) {
                             console.log(chunk.length);
                             socket.emit("DownloadBytes", { chunk: chunk, alldata: responsedata, title: data.MovieDownloadButtonEpisodeName })
@@ -304,6 +322,7 @@ io.of("/Movies").on("connection", (socket) => {
 
         return "done";
     }
+
 })
 
 
@@ -326,25 +345,23 @@ function reverseString(str) {
     return joinArray; // "olleh"
 }
 io.of("/").on("connection", (socket) => {
-    randomID = Math.random(10000);
+    
+
     socket.on("UserLogin", (data) => {
         if (data.username == "Nox" && data.password == "NoxPass") {
-            socket.emit("verified", { verifed: true, ID: randomID });
-            users.push(data.username);
-            app.get("/Movies/", (req, res) => {
-                if (req.query.id == randomID) {
-                    res.sendFile("Movie.html", { root: __dirname });
-                } else {
-                    res.status(404);
-                }
+            socket.emit("verified", { verifed: true, ID: socket.id });
+            users.push(socket.id);
+            console.log(users)
+            app.get("/" + socket.id + "/Movies/", (req, res) => {
+                
+                res.sendFile("Movie.html", { root: __dirname });
+                
             });
+
         } else {
             socket.emit("verified", { verifed: false });
         }
     });
-    socket.on("disconnect", (user) => {
-        console.log("user disconneected");
-        users = [];
-    });
+
 });
 server.listen(3001);
