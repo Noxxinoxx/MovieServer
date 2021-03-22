@@ -48,6 +48,7 @@ async function AnimeSearch(searchWord) {
 
 
 app.use("/Backgrounds/", express.static("public/Background/"))
+app.use("/icons/", express.static("public/icons/"))
 app.get("/", (req, res) => {
     res.sendFile("index.html", { root: __dirname });
 });
@@ -56,7 +57,9 @@ io.of("/Wonder").on("connection", (socket) => {
         socket.id = data;
         console.log(socket.id)
     })
-
+    socket.on("ClientopenParty", (data) => {
+        io.of("/Movies").emit("ClientopenPartyy", {title: data.title, id: data.id})
+    })
 
     socket.emit("renderMovieFromHandleBars", {
         Title: movieClicked,

@@ -23,6 +23,10 @@
             <div id="afterSearch" class="flex-item">
                 <h4 style="text-align: center;">Search result!</h4>
             </div>
+
+            <div id="OpenRooms"class="flex-item">
+                <h4 style="text-align: center;">Open Rooms</h4>
+            </div>
         </div>
         
         <style>
@@ -68,6 +72,9 @@
 
 
         <script>
+
+
+
         var socket = io("/Movies")
         var videos = []
         var UserID;
@@ -76,6 +83,14 @@
         var url = []
         var url2 = []
         var id = window.location.href
+
+        
+
+
+
+
+
+
         for(l = 0; l < id.length; l++) {
             if(id[l] == "/") {
                 url.push(l)
@@ -85,6 +100,21 @@
             url2.push(id[ll])
         }
         id = url2.join("")
+
+        socket.on("ClientopenPartyy", (data) => {
+            var doc = document.getElementById("OpenRooms")
+            var createPTag = document.createElement("p")
+            createPTag.innerHTML = "Title: " + data.title + " id: " + data.id;
+            doc.append(createPTag)
+            console.log("hehjeh ")
+            ClickOpenRoom(createPTag, data.id, data.title)
+        })
+        
+        function ClickOpenRoom(pTag, id, title) {
+            pTag.addEventListener("click", () => {
+                document.location.replace("http://localhost:3001/" + id + "/" + title)
+            })
+        }
         
         socket.emit("id", id)
         document.getElementById("emit").onclick = () =>{
@@ -164,6 +194,8 @@
                     var pTag = document.createElement("p")
                     
                     pTag.innerHTML = Name;
+
+                    
                     
                     if(NameCal == -1) {
                         var pp = document.createElement("p")
@@ -171,8 +203,10 @@
                         pp.setAttribute("id", data.MovieFolder[i])
                         if(data.MovieFolder[i] == "Collection") {
                             console.log("df")
-                        }else{
+                        }
+                        else{
                             div.appendChild(pp)
+                            CallEvent(pp, false)
                         }
                         
                     }
@@ -236,7 +270,7 @@
                             }else {
                                 y.setAttribute("name", gg[i] +"Episode" + i + ".mp4")
                             }
-                            CallEvent(y)
+                            CallEvent(y, true)
                             
 
                         }
@@ -273,11 +307,20 @@
                 }
                 return CreateArray
             }
-            function CallEvent(pTag) {
+            function CallEvent(pTag, Epi) {
                 pTag.addEventListener("click", () => {
-                    socket.emit("videoClicked", {
-                        MovieClicked: pTag.getAttribute("name"),
-                    });
+                    if(Epi == true) {
+                        socket.emit("videoClicked", {
+
+                            MovieClicked: pTag.getAttribute("name"),
+                        });
+                    }else {
+                        socket.emit("videoClicked", {
+
+                            MovieClicked: pTag.getAttribute("id"),
+                        });
+                    }
+                    
                     
                 });
             }

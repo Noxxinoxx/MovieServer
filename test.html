@@ -11,19 +11,29 @@
 
     <body>
         <style>
-            .center { margin: 0 auto; width: 400px; }
+            
 
         </style>
         <div style="justify-content: center;align-content: center;">
-            <video class="center"src="" id="video" controls ></video>
+            <p id="Title"></p>
+            <video src="" id="video" controls style="width: 500px; height: 400px;" ></video>
         
         </div>
+        <div style="margin-top: 12px;">
+            <img id="backimg"src="http://localhost:3001/icons/left-arrow.png" alt="" style="width:30px; height:30px; float: left;">
+            <p id="BackButton" style="margin:0px; height: 32px; max-idth: 100%; float:left; overflow:auto; margin-top: 6px; margin-left: 4px;" >Back to Movies</p> 
+        </div>
+        <div id="openParty">
+            <p id="OpenParty">OPEN PARTY ON THIS MOVIE</p>
+        </div>
+        
         <script>
+
             var socket = io("/Wonder");
             var url = []
             var url2 = []
             var id = window.location.href
-            
+            var datatitle;
             for(l = 0; l < id.length; l++) {
                 if(id[l] == "/") {
                     url.push(l)
@@ -34,8 +44,14 @@
                 url2.push(id[ll])
             }
             id = url2.join("")
+
+            
+
+
             socket.emit("id", id)
+            
             socket.on("renderMovieFromHandleBars", (data) => {
+                
                 var video = document.getElementById("video");
                 video.setAttribute(
                     "src",
@@ -44,8 +60,31 @@
                         "/Movie/" +
                         data.Title
                 );
-                
+                var Title = document.getElementById("Title")
+                Title.innerText = data.Title;
             });
+            var backButton = document.getElementById("BackButton")
+            backButton.addEventListener("click", () => {
+
+                document.location.replace("http://localhost:3001/" + id + "/Movies/")
+
+
+            })
+            var imgButton = document.getElementById("backimg")
+            imgButton.addEventListener("click", ()=> {
+                document.location.replace("http://localhost:3001/" + id + "/Movies/")
+            })
+            var Title = document.getElementById("Title")
+            Title.innerText = datatitle;
+            var openparty = document.getElementById("OpenParty") 
+            function BrodcastToAllClients() {
+                socket.emit("ClientopenParty", {id: id, title: Title.innerText})
+            }
+            openparty.addEventListener("click", () => {
+                BrodcastToAllClients()
+                console.log("bbbbbb")
+            })
+
         </script>
     </body>
 </html>
