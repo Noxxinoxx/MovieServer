@@ -10,7 +10,14 @@
     </head>
 
     <body>
-        <video src="" id="video" controls></video>
+        <style>
+            .center { margin: 0 auto; width: 400px; }
+
+        </style>
+        <div style="justify-content: center;align-content: center;">
+            <video class="center"src="" id="video" controls ></video>
+        
+        </div>
         <script>
             var socket = io("/Wonder");
             var url = []
@@ -27,16 +34,7 @@
                 url2.push(id[ll])
             }
             id = url2.join("")
-            console.log(url2)
-        
-
-            console.log(url)
-
-
-            console.log(id)
             socket.emit("id", id)
-
-            
             socket.on("renderMovieFromHandleBars", (data) => {
                 var video = document.getElementById("video");
                 video.setAttribute(
@@ -46,7 +44,7 @@
                         "/Movie/" +
                         data.Title
                 );
-                console.log(data);
+                
             });
         </script>
     </body>
