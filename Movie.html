@@ -84,12 +84,6 @@
         var url2 = []
         var id = window.location.href
 
-        
-
-
-
-
-
 
         for(l = 0; l < id.length; l++) {
             if(id[l] == "/") {
@@ -110,9 +104,11 @@
             ClickOpenRoom(createPTag, data.id, data.title)
         })
         
-        function ClickOpenRoom(pTag, id, title) {
+        function ClickOpenRoom(pTag, idd, title) {
             pTag.addEventListener("click", () => {
-                document.location.replace("http://localhost:3001/" + id + "/" + title)
+                socket.emit("OpenParty", {PartyID :idd, movieTitle: title, userID: id,})
+                document.location.replace("http://localhost:3001/" + id + "/" + title + "?host=" + idd)
+
             })
         }
         
@@ -121,7 +117,6 @@
             var bar = document.getElementById("searchBar").value
             socket.emit("animesearch", {MoviveTitle: bar})
         }
-
 
         function ForcedMovieFinder() {
             var SearchThing = document.getElementById("ForcedForcedsearchBar")

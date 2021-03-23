@@ -86,7 +86,13 @@ io.of("/Movies").on("connection", (socket) => {
         console.log(socket.id)
     })
 
-    
+    socket.on("OpenParty", (data) => {
+        app.get("/" + data.userID + "/" + data.movieTitle, (req, res) => {
+            
+            res.sendFile("test.html", { root: __dirname });
+            
+        })
+    })
     var MovieFolde = fs.readdirSync("./public/Movie/");
     socket.emit("videos", { MovieFolder: MovieFolde, ID: socket.id });
 

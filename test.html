@@ -28,28 +28,61 @@
         </div>
         
         <script>
-
+            
             var socket = io("/Wonder");
-            var url = []
-            var url2 = []
-            var id = window.location.href
             var datatitle;
-            for(l = 0; l < id.length; l++) {
-                if(id[l] == "/") {
-                    url.push(l)
+            function FindSomethinginUrl(what) {
+                var url = []
+                var url2 = []
+                var id = window.location.href
+            
+                for(l = 0; l < id.length; l++) {
+                    if(id[l] == what) {
+                        url.push(l)
+                    }
                 }
-            }
 
-            for(ll = url[2] + 1; ll < url[3]; ll++) {
-                url2.push(id[ll])
+                for(ll = url[2] + 1; ll < url[3]; ll++) {
+                    url2.push(id[ll])
+                }
+                id = url2.join("")
+                return id;
             }
-            id = url2.join("")
-
             
 
+            socket.emit("id", FindSomethinginUrl("/"))
+            console.log(gf("="))
 
-            socket.emit("id", id)
-            
+            function gf(what){
+                var url = []
+                var url2 = []
+                var id = window.location.href
+                var leg;
+                for(l = 0; l < id.length; l++) {
+                    if(id[l] == what) {
+                        url.push(l)
+                        leg = l
+                    }
+                }
+
+                for(ll = url[0] + 1; ll < l; ll++) {
+                    url2.push(id[ll])
+                }
+                host = url2.join("")
+                
+                return host;
+            }
+
+
+            if(host != "") {
+                var opp = document.getElementById("openParty")
+                opp.innerHTML = ""
+            }
+
+
+
+
+
             socket.on("renderMovieFromHandleBars", (data) => {
                 
                 var video = document.getElementById("video");
@@ -66,23 +99,25 @@
             var backButton = document.getElementById("BackButton")
             backButton.addEventListener("click", () => {
 
-                document.location.replace("http://localhost:3001/" + id + "/Movies/")
+                document.location.replace("http://localhost:3001/" + FindSomethinginUrl("/") + "/Movies/")
 
 
             })
             var imgButton = document.getElementById("backimg")
             imgButton.addEventListener("click", ()=> {
-                document.location.replace("http://localhost:3001/" + id + "/Movies/")
+                document.location.replace("http://localhost:3001/" + FindSomethinginUrl("/") + "/Movies/")
             })
             var Title = document.getElementById("Title")
             Title.innerText = datatitle;
             var openparty = document.getElementById("OpenParty") 
             function BrodcastToAllClients() {
-                socket.emit("ClientopenParty", {id: id, title: Title.innerText})
+                socket.emit("ClientopenParty", {id: FindSomethinginUrl("/"), title: Title.innerText})
             }
+            var open = document.getElementById("openParty")
             openparty.addEventListener("click", () => {
                 BrodcastToAllClients()
-                console.log("bbbbbb")
+                open.innerHTML = ""
+                
             })
 
         </script>
