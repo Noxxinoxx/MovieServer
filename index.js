@@ -42,9 +42,9 @@ async function AnimeSearch(searchWord) {
     }
 }
 
-//fix watch together;
-
-
+//fix watch together; done;
+//Fix open rooms saver; witrh and array with the open rooms;
+//Fix forced links;
 
 
 app.use("/Backgrounds/", express.static("public/Background/"))
@@ -57,6 +57,10 @@ io.of("/Wonder").on("connection", (socket) => {
         socket.id = data;
         console.log(socket.id)
     })
+    socket.on("VideoTime", (data) => {
+        io.of("/Wonder").emit("videoTime", {CurrentTime: data})
+    })
+
     socket.on("ClientopenParty", (data) => {
         io.of("/Movies").emit("ClientopenPartyy", {title: data.title, id: data.id})
     })

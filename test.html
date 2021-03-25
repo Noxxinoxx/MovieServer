@@ -16,7 +16,7 @@
         </style>
         <div style="justify-content: center;align-content: center;">
             <p id="Title"></p>
-            <video src="" id="video" controls style="width: 500px; height: 400px;" ></video>
+            <video src="" id="video" controls style="width: 500px; height: 400px;"></video>
         
         </div>
         <div style="margin-top: 12px;">
@@ -28,7 +28,7 @@
         </div>
         
         <script>
-            
+            var PartyIsOpen = false;
             var socket = io("/Wonder");
             var datatitle;
             function FindSomethinginUrl(what) {
@@ -73,14 +73,40 @@
                 return host;
             }
 
-
+            var SendTime = false;
+            var video = document.getElementById("video")
             if(host != "") {
                 var opp = document.getElementById("openParty")
                 opp.innerHTML = ""
+                
+            }else {
+                SendTime = true;    
             }
+            
+            setInterval(() => {
+                SendTimeToWatchers()
+            }, 1000)
 
 
-
+            function SendTimeToWatchers() {
+                if(SendTime == true) {
+                    
+                    var getTime = video.currentTime;
+                    socket.emit("VideoTime", getTime)
+                }else{
+                    socket.on("videoTime", (data) => {
+                        
+                        if(Math.round(data.CurrentTime) == Math.round(video.currentTime)){
+                           return
+                        }else {
+                            video.currentTime = data.CurrentTime;
+                            video.play = true;
+                        }
+                        
+                    })
+                }
+                
+            }
 
 
             socket.on("renderMovieFromHandleBars", (data) => {
@@ -112,6 +138,8 @@
             var openparty = document.getElementById("OpenParty") 
             function BrodcastToAllClients() {
                 socket.emit("ClientopenParty", {id: FindSomethinginUrl("/"), title: Title.innerText})
+                PartyIsOpen = true;
+                
             }
             var open = document.getElementById("openParty")
             openparty.addEventListener("click", () => {
