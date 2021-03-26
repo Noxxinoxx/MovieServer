@@ -48,13 +48,14 @@ async function AnimeSearch(searchWord) {
 
 //add supprot for servers aka duel server one for downloading movies and one for storing and previewing movies;
 
-
+var openParties = []
 app.use("/Backgrounds/", express.static("public/Background/"))
 app.use("/icons/", express.static("public/icons/"))
 app.get("/", (req, res) => {
     res.sendFile("index.html", { root: __dirname });
 });
 io.of("/Wonder").on("connection", (socket) => {
+    var partyOwner = false;
     socket.on("id", (data) => {
         socket.id = data;
         console.log(socket.id)
@@ -64,6 +65,14 @@ io.of("/Wonder").on("connection", (socket) => {
     })
 
     socket.on("ClientopenParty", (data) => {
+        partyOwner = true;
+        var jsonObject = {
+            title: data.title,
+            id: data.id,
+        }
+
+        openParties.push(jsonObject)
+        console.log(openParties)
         io.of("/Movies").emit("ClientopenPartyy", {title: data.title, id: data.id})
     })
 
@@ -75,7 +84,16 @@ io.of("/Wonder").on("connection", (socket) => {
     console.log("Movie that are played is: " + movieClicked);
     app.use("/static/" + socket.id, express.static("public"));
     socket.on("disconnect", () => {
-
+        console.log(openParties)
+        if(partyOwner == true) {
+            for(g = 0; g < openParties.length; g++) {
+                if(openParties[g].id == socket.id) {
+                    openParties.splice(g, 1)
+                    io.of("/Movies").emit("DeleteOpenParty", {id: socket.id})
+                }
+            }
+            console.log(openParties)
+        }
         console.log("user disconneected");
         console.log(users)
         var arraycontainsturtles = users.indexOf(socket.id)
@@ -86,6 +104,9 @@ io.of("/Wonder").on("connection", (socket) => {
     });
 });
 io.of("/Movies").on("connection", (socket) => {
+   
+    socket.emit("listenToOpenParty", {Parties: openParties})
+
 
     socket.on("forceDownload", (data) => {
         ForceDownload(data.title, data.episode)
@@ -109,6 +130,8 @@ io.of("/Movies").on("connection", (socket) => {
         socket.id = data;
         console.log(socket.id)
     })
+
+
     socket.on("OpenParty", (data) => {
         app.get("/" + data.userID + "/" + data.movieTitle, (req, res) => {
             res.sendFile("test.html", { root: __dirname });
@@ -236,6 +259,9 @@ io.of("/Movies").on("connection", (socket) => {
             if (withoutSpaces.includes("∞")) {
                 withoutSpaces = withoutSpaces.split("∞").join("")
             }
+            if (withoutSpaces.includes("&")) {
+                withoutSpaces = withoutSpaces.split("&").join("")
+            }
 
             var file = fs.createWriteStream("./public/Movie/" + withoutSpaces.replace(" ", "") + ".mp4")
             // om inte länken funkar så är det https://v6.4animu.me/Nanatsu-no-Taizai/Nanatsu-no-Taizai-Episode-01-1080p.mp4
@@ -261,7 +287,7 @@ io.of("/Movies").on("connection", (socket) => {
                         console.log("no address")
                         var assemble = assembleNewLink(newLink, 0)
                         console.log("wankes here")
-                        var doneWithotherDownload = await DownloadFromOtherAdress(assemble, data, file, MassDownload);
+                        await DownloadFromOtherAdress(assemble, data, withoutSpaces.replace(" ", ""), MassDownload, 0);
                     } else {
                         reqq.on('data', async function (chunk) {
                             console.log(chunk.length);
@@ -310,11 +336,15 @@ io.of("/Movies").on("connection", (socket) => {
 
         return link;
     }
-    async function DownloadFromOtherAdress(newLink, data, file, MassDownload) {
+    
+    async function DownloadFromOtherAdress(newLink, data, filee, MassDownload, old) {
         // LINK : https://v6.4animu.me/Nanatsu-no-Taizai-Imashime-no-Fukkatsu/Nanatsu-no-Taizai-Imashime-no-Fukkatsu-Episode-01-1080p.mp4
 
         console.log("getCalled")
+        var h = 0;
+        h = h + old;
         try {
+            var file = fs.createWriteStream("./public/Movie/" + filee + ".mp4")
             var reqq = request({
                 method: "GET",
                 uri: newLink,
@@ -327,9 +357,8 @@ io.of("/Movies").on("connection", (socket) => {
                 if (responsedata <= 300) {
                     socket.emit("alertMovieNotFound", { movieNotFound: "MovieNotFound!" })
                     console.log("no address")
-                    var assemble = assembleNewLink(newLink, 1)
-                    console.log("wankes here")
-                    await DownloadFromOtherAdress(assemble, data, file, MassDownload);
+                    var assemble = assembleNewLink(newLink, h)
+                    await DownloadFromOtherAdress(assemble, data, file, MassDownload, h);
                 } else {
                     reqq.on('data', async function (chunk) {
                         console.log(chunk.length);

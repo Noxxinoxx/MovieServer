@@ -95,9 +95,27 @@
         }
         id = url2.join("")
 
+        socket.on("listenToOpenParty", (data) => {
+            for(t = 0; t < data.Parties.length; t++) {
+                var doc = document.getElementById("OpenRooms")
+                var createPTag = document.createElement("p")
+                createPTag.setAttribute("id", data.Parties[t].id)
+                createPTag.innerHTML = "Title: " + data.Parties[t].title + " id: " + data.Parties[t].id;
+                doc.append(createPTag)
+                console.log("hehjeh ")
+                ClickOpenRoom(createPTag, data.Parties[t].id, data.Parties[t].title)
+            }
+        })
+
+        socket.on("DeleteOpenParty", (data) => {
+            var pTag = document.getElementById(data.id)
+            pTag.innerHTML = ""
+        })
+
         socket.on("ClientopenPartyy", (data) => {
             var doc = document.getElementById("OpenRooms")
             var createPTag = document.createElement("p")
+            createPTag.setAttribute("id", data.Parties[t].id)
             createPTag.innerHTML = "Title: " + data.title + " id: " + data.id;
             doc.append(createPTag)
             console.log("hehjeh ")
@@ -355,15 +373,16 @@
             
             console.clear()
             var view1 = new DataView(data.chunk)
-            
+            var alldata;
             pp = pp + view1.byteLength;
-
+            var dataa = data.alldata;
+            
             if(gg == true) {
                 var divEpisode = document.getElementById(data.title)
                 p = document.createElement("p")
                 gg = false;
             }
-            p.innerHTML = pp + " / " + data.alldata;
+            p.innerHTML = (pp / 1000000) + "MB" + " / " + (dataa / 1000000) + "MB";
             divEpisode.appendChild(p)
 
         })
