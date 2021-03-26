@@ -46,6 +46,8 @@ async function AnimeSearch(searchWord) {
 //Fix open rooms saver; witrh and array with the open rooms;
 //Fix forced links;
 
+//add supprot for servers aka duel server one for downloading movies and one for storing and previewing movies;
+
 
 app.use("/Backgrounds/", express.static("public/Background/"))
 app.use("/icons/", express.static("public/icons/"))
@@ -85,16 +87,31 @@ io.of("/Wonder").on("connection", (socket) => {
 });
 io.of("/Movies").on("connection", (socket) => {
 
+    socket.on("forceDownload", (data) => {
+        ForceDownload(data.title, data.episode)
+        console.log("jejej")
+    })
+    function ForceDownload(title, episode) {
+        //https://v3.4animu.me/
+
+
+        var title = title.split(" ", "-")
+        console.log(title)
+        var url = "https://v3.4animu.me/" + title + "-Episode-" + episode + ".mp4"
+        console.log(url)
+
+
+
+    }
+
+
     socket.on("id", (data) => {
         socket.id = data;
         console.log(socket.id)
     })
-
     socket.on("OpenParty", (data) => {
         app.get("/" + data.userID + "/" + data.movieTitle, (req, res) => {
-            
             res.sendFile("test.html", { root: __dirname });
-            
         })
     })
     var MovieFolde = fs.readdirSync("./public/Movie/");
@@ -166,7 +183,6 @@ io.of("/Movies").on("connection", (socket) => {
         }
         DownloadMovie(dataa, true)
     }
-
     async function DownloadMovie(data, MassDownload) {
         var CollectionMovie = fs.readFileSync("./public/Movie/Collection/" + data.MovieDownloadCollectionName + ".json")
         var parsedColletion = JSON.parse(CollectionMovie)
@@ -227,7 +243,7 @@ io.of("/Movies").on("connection", (socket) => {
             // all mellanrum blir bindessträck
             //https://mountainoservo0002.animecdn.com/SK8-the-Infinity/SK8-the-Infinity-Episode-01-1080p.mp4
             ///Users/nox/Documents/GitHub/MovieServer/public/Movie/BorutoNarutotheMovie–NarutogaHokageniNattaHiEpisode01.mp4
-
+            //https://v3.4animu.me/
 
             try {
                 var reqq = request({
@@ -276,7 +292,6 @@ io.of("/Movies").on("connection", (socket) => {
 
 
     }
-
     function assembleNewLink(OldLink) {
         var l = "https://mountainoservo0002.animecdn.com/SK8-the-Infinity/SK8-the-Infinity-Episode-01-1080p.mp4"
 
@@ -292,8 +307,6 @@ io.of("/Movies").on("connection", (socket) => {
 
         return link;
     }
-
-
     async function DownloadFromOtherAdress(newLink, data, file, MassDownload) {
         // LINK : https://v6.4animu.me/Nanatsu-no-Taizai-Imashime-no-Fukkatsu/Nanatsu-no-Taizai-Imashime-no-Fukkatsu-Episode-01-1080p.mp4
 
