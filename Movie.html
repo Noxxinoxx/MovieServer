@@ -107,7 +107,7 @@
         function ClickOpenRoom(pTag, idd, title) {
             pTag.addEventListener("click", () => {
                 socket.emit("OpenParty", {PartyID :idd, movieTitle: title, userID: id,})
-                document.location.replace("http://localhost:3001/" + id + "/" + title + "?host=" + idd)
+                document.location.replace("/" + id + "/" + title + "?host=" + idd)
 
             })
         }
@@ -340,7 +340,7 @@
             })
         }
         socket.on("movie", (MovieData) => {
-            document.location.replace("http://localhost:3001/" + MovieData.ID + "/" + MovieData.Title )
+            document.location.replace("/" + MovieData.ID + "/" + MovieData.Title )
         })
         var gg = true;
         var pp = 0;

@@ -20,7 +20,7 @@
         
         </div>
         <div style="margin-top: 12px;">
-            <img id="backimg"src="http://localhost:3001/icons/left-arrow.png" alt="" style="width:30px; height:30px; float: left;">
+            <img id="backimg"src="/icons/left-arrow.png" alt="" style="width:30px; height:30px; float: left;">
             <p id="BackButton" style="margin:0px; height: 32px; max-idth: 100%; float:left; overflow:auto; margin-top: 6px; margin-left: 4px;" >Back to Movies</p> 
         </div>
         <div id="openParty">
@@ -114,7 +114,7 @@
                 var video = document.getElementById("video");
                 video.setAttribute(
                     "src",
-                    "http://localhost:3001/static/" +
+                    "/static/" +
                         data.ID +
                         "/Movie/" +
                         data.Title
@@ -125,13 +125,13 @@
             var backButton = document.getElementById("BackButton")
             backButton.addEventListener("click", () => {
 
-                document.location.replace("http://localhost:3001/" + FindSomethinginUrl("/") + "/Movies/")
+                document.location.replace("/" + FindSomethinginUrl("/") + "/Movies/")
 
 
             })
             var imgButton = document.getElementById("backimg")
             imgButton.addEventListener("click", ()=> {
-                document.location.replace("http://localhost:3001/" + FindSomethinginUrl("/") + "/Movies/")
+                document.location.replace("/" + FindSomethinginUrl("/") + "/Movies/")
             })
             var Title = document.getElementById("Title")
             Title.innerText = datatitle;

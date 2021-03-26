@@ -259,7 +259,8 @@ io.of("/Movies").on("connection", (socket) => {
                     if (responsedata <= 300) {
                         socket.emit("alertMovieNotFound", { movieNotFound: "MovieNotFound!" })
                         console.log("no address")
-                        var assemble = assembleNewLink(newLink)
+                        var assemble = assembleNewLink(newLink, 0)
+                        console.log("wankes here")
                         var doneWithotherDownload = await DownloadFromOtherAdress(assemble, data, file, MassDownload);
                     } else {
                         reqq.on('data', async function (chunk) {
@@ -292,7 +293,7 @@ io.of("/Movies").on("connection", (socket) => {
 
 
     }
-    function assembleNewLink(OldLink) {
+    function assembleNewLink(OldLink, ii) {
         var l = "https://mountainoservo0002.animecdn.com/SK8-the-Infinity/SK8-the-Infinity-Episode-01-1080p.mp4"
 
         var linkLength = OldLink.length;
@@ -303,7 +304,9 @@ io.of("/Movies").on("connection", (socket) => {
             LinkArray.push(OldLink[i])
         }
         console.log(LinkArray.join(""))
-        var link = "https://v6.4animu.me" + LinkArray.join("");
+        var arrayOfURLS = ["https://v1.4animu.me", "https://v6.4animu.me", "https://v3.4animu.me"]
+        var link = arrayOfURLS[ii] + LinkArray.join("");
+        
 
         return link;
     }
@@ -318,24 +321,34 @@ io.of("/Movies").on("connection", (socket) => {
             })
             reqq.pipe(file)
             var responsedata;
-            reqq.on('response', function (dataa) {
+            reqq.on('response', async function (dataa) {
                 console.log(dataa.headers['content-length']);
                 responsedata = dataa.headers['content-length'];
-            });
-            reqq.on('data', function (chunk) {
-                console.log(chunk.length);
-                socket.emit("DownloadBytes", { chunk: chunk, alldata: responsedata, title: data.MovieDownloadButtonEpisodeName })
-            });
-
-            reqq.on('end', function () {
-
-                console.log("done req")
-                socket.emit("doneWithDownload")
-                if (MassDownload == true) {
-                    LoadnewMassDownloadData(null)
+                if (responsedata <= 300) {
+                    socket.emit("alertMovieNotFound", { movieNotFound: "MovieNotFound!" })
+                    console.log("no address")
+                    var assemble = assembleNewLink(newLink, 1)
+                    console.log("wankes here")
+                    await DownloadFromOtherAdress(assemble, data, file, MassDownload);
                 } else {
-                    console.log("done req")
-                    socket.emit("doneWithDownload")
+                    reqq.on('data', async function (chunk) {
+                        console.log(chunk.length);
+                        socket.emit("DownloadBytes", { chunk: chunk, alldata: responsedata, title: data.MovieDownloadButtonEpisodeName })
+
+                    });
+
+                    reqq.on('end', async function () {
+
+                        if (MassDownload == true) {
+                            LoadnewMassDownloadData(null)
+                        } else {
+                            console.log("done req")
+                            socket.emit("doneWithDownload")
+                        }
+
+
+
+                    });
                 }
             });
         } catch (err) {

@@ -20,7 +20,7 @@
         socket.on("verified", (data) => {
             console.log(data.ID)
             if(data.verifed == true) {
-                document.location.replace("http://localhost:3001/" + data.ID + "/Movies/")
+                document.location.replace("/" + data.ID + "/Movies/")
             }else if(data.verifed == false) {
                 alert("wrong password or username")
             }
