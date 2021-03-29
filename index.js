@@ -160,7 +160,7 @@ io.of("/Movies").on("connection", (socket) => {
                             }
 
                             
-                            ForceDownload(title,episode)
+                            
                         } else {
                             console.log("done req")
                             socket.emit("doneWithDownload")
