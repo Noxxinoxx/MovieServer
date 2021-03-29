@@ -45,7 +45,7 @@ async function AnimeSearch(searchWord) {
 //fix watch together; done;
 //Fix open rooms saver; witrh and array with the open rooms;
 //Fix forced links;
-
+//add user spersif things, like mark that you allready watched a movie or episode, remeber time on the episdes if you leave, chatloggs, partyloggs, and so on,
 //add supprot for servers aka duel server one for downloading movies and one for storing and previewing movies;
 
 var openParties = []
@@ -84,7 +84,7 @@ io.of("/Wonder").on("connection", (socket) => {
     console.log("Movie that are played is: " + movieClicked);
     app.use("/static/" + socket.id, express.static("public"));
     socket.on("disconnect", () => {
-        console.log(openParties)
+        //if the socket is a open party owner and he disconnect it will take it away from the array;
         if(partyOwner == true) {
             for(g = 0; g < openParties.length; g++) {
                 if(openParties[g].id == socket.id) {
@@ -95,12 +95,8 @@ io.of("/Wonder").on("connection", (socket) => {
             console.log(openParties)
         }
         console.log("user disconneected");
-        console.log(users)
         var arraycontainsturtles = users.indexOf(socket.id)
-        console.log(arraycontainsturtles)
         users.splice(arraycontainsturtles, 1)
-        console.log(users)
-
     });
 });
 io.of("/Movies").on("connection", (socket) => {
@@ -109,17 +105,75 @@ io.of("/Movies").on("connection", (socket) => {
 
 
     socket.on("forceDownload", (data) => {
-        ForceDownload(data.title, data.episode)
+        ForceDownload(data.title, data.episode, -1, true)
         console.log("jejej")
     })
-    function ForceDownload(title, episode) {
+    
+    function ForceDownload(title, episode, interation, MassDownload) {
         //https://v3.4animu.me/
-
-
-        var title = title.split(" ", "-")
+        interation = interation + 1;
+        
+        title = title.replace(" ", "-")
+        
         console.log(title)
-        var url = "https://v3.4animu.me/" + title + "-Episode-" + episode + ".mp4"
+        var arrayOfURLS = ["https://v1.4animu.me", "https://v6.4animu.me", "https://v3.4animu.me"]
+        var url = arrayOfURLS[interation] + "/" + title + "/" + title + "-Episode-" + episode + "-1080p" +".mp4"
+        
         console.log(url)
+
+        try {
+            var file = fs.createWriteStream("./public/Movie/" + title + "Episode" + episode + ".mp4")
+            var reqq = request({
+                method: "GET",
+                uri: url,
+            })
+            reqq.pipe(file)
+            var responsedata;
+            reqq.on('response', async function (dataa) {
+                console.log(dataa.headers['content-length']);
+                responsedata = dataa.headers['content-length'];
+                if (responsedata <= 300) {
+                    ForceDownload(title, episode, interation, true);
+                } else {
+                    reqq.on('data', async function (chunk) {
+                        console.log(chunk.length);
+                        socket.emit("DownloadBytes", { chunk: chunk, alldata: responsedata, title: title })
+
+                    });
+
+                    reqq.on('end', async function () {
+
+                        if (MassDownload == true) {
+                            
+                            if(episode.indexOf("0") == 0) {
+                                var indexOfEpisodeNumber = episode.indexOf("0") + 1;
+                                
+                                var stringEpi = (parseInt(episode[indexOfEpisodeNumber]) + 1)
+                                var s = "0"
+                                s += stringEpi.toString();
+
+                                ForceDownload(title, s, -1, true)
+
+                            }else {
+                                var eop = parseInt(episode) + 1
+                                ForceDownload(title, eop, -1, true)
+                            }
+
+                            
+                            ForceDownload(title,episode)
+                        } else {
+                            console.log("done req")
+                            socket.emit("doneWithDownload")
+                        }
+
+
+
+                    });
+                }
+            });
+        } catch (err) {
+            console.log(err)
+        }
 
 
 

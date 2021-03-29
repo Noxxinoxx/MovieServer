@@ -13,7 +13,9 @@
         </div>
         <div id="ForcedMovieFinder">
             <input type="text" id="ForcedsearchBar" placeholder="force download name must be accuret" />
+            <input type="text" id="ForcedsearchBarEpidosde" placeholder="Put in your forced episode number exe = 001">
             <input type="button" id="Forcedemit" value="Search" onclick="ForcedMovieFinder()" />
+            
         </div>
        
         <div id="Parent">
@@ -140,8 +142,8 @@
             console.log("ef")
             var SearchThing = document.getElementById("ForcedsearchBar")
             var SearchButton = document.getElementById("Forcedemit");
-            
-            socket.emit("forceDownload", {title: SearchThing.value, episode: 01})
+            var epie = document.getElementById("ForcedsearchBarEpidosde");
+            socket.emit("forceDownload", {title: SearchThing.value, episode: epie.value})
            
 
 
