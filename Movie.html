@@ -144,10 +144,6 @@
             var SearchButton = document.getElementById("Forcedemit");
             var epie = document.getElementById("ForcedsearchBarEpidosde");
             socket.emit("forceDownload", {title: SearchThing.value, episode: epie.value})
-           
-
-
-
 
         }
         socket.on("OnSearchResult", (data) => {
